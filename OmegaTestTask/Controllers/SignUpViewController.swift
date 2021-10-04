@@ -59,6 +59,14 @@ class SignUpViewController: UIViewController {
         return label
     }()
     
+    private let ageValidLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Required field"
+        label.font = UIFont.systemFont(ofSize: 14)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
     private let phoneNumberTextField: UITextField = {
         let textField = UITextField()
         textField.borderStyle = .roundedRect
@@ -118,6 +126,7 @@ class SignUpViewController: UIViewController {
     }()
     
     private var textFieldsStackView = UIStackView()
+    private let datePicker = UIDatePicker()
     
     let nameValidType: String.ValidType = .name
     let emailValidType: String.ValidType = .email
@@ -130,6 +139,7 @@ class SignUpViewController: UIViewController {
         setConstraints()
         setupDelegate()
         registerForKeyboardNotifications()
+        setupDataPicker()
     }
     
     deinit {
@@ -141,11 +151,13 @@ class SignUpViewController: UIViewController {
         
         view.addSubview(scrollView)
         scrollView.addSubview(backgroundView)
-        
+
         textFieldsStackView = UIStackView(arrangedSubviews: [firstNameTextField,
                                                              firstNameValidLabel,
                                                              secondNameTextField,
                                                              secondNameValidLabel,
+                                                             datePicker,
+                                                             ageValidLabel,
                                                              phoneNumberTextField,
                                                              phoneValidLabel,
                                                              emailTextField,
@@ -158,6 +170,7 @@ class SignUpViewController: UIViewController {
         backgroundView.addSubview(textFieldsStackView)
         backgroundView.addSubview(loginLabel)
         backgroundView.addSubview(signUpButton)
+        
     }
     
     private func setupDelegate() {
@@ -168,6 +181,16 @@ class SignUpViewController: UIViewController {
         passwordTextField.delegate = self
     }
     
+    private func setupDataPicker() {
+        datePicker.datePickerMode = .date
+        datePicker.backgroundColor = .white
+        datePicker.layer.borderColor = #colorLiteral(red: 0.8810099265, green: 0.8810099265, blue: 0.8810099265, alpha: 1)
+        datePicker.layer.borderWidth = 1
+        datePicker.clipsToBounds = true
+        datePicker.layer.cornerRadius = 6
+        datePicker.tintColor = .black
+    }
+    
     @objc private func signUpButtonTapped() {
         
         let firstNametext = firstNameTextField.text ?? ""
@@ -175,21 +198,38 @@ class SignUpViewController: UIViewController {
         let phoneText = phoneNumberTextField.text ?? ""
         let emailText = emailTextField.text ?? ""
         let passwordText = passwordTextField.text ?? ""
-        
+
         if firstNametext.isValid(nameValidType)
             && secondNametext.isValid(nameValidType)
             && emailText.isValid(emailValidType)
             && passwordText.isValid(passwordValidType)
-            && phoneText.count == 18 {
-            
-            DataBase.shared.saveUser(firstName: firstNametext, seconName: secondNametext, phone: phoneText, email: emailText, password: passwordText)
+            && phoneText.count == 18
+            && ageIsValid() == true {
+
+            DataBase.shared.saveUser(firstName: firstNametext,
+                                     seconName: secondNametext,
+                                     phone: phoneText,
+                                     email: emailText,
+                                     password: passwordText,
+                                     age: datePicker.date)
 
             loginLabel.text = "Registration completed"
         } else {
-            loginLabel.text = "Fill in all the fields"
+            loginLabel.text = "Registration"
+            alertOk(title: "Error", message: "Fill in all the fields and your age must be 18+ y.o.")
         }
     }
     
+    private func ageIsValid() -> Bool {
+        let calendar = NSCalendar.current
+        let dateNow = Date()
+        let birthday = datePicker.date
+        
+        let age = calendar.dateComponents([.year], from: birthday, to: dateNow)
+        let ageYear = age.year
+        guard let ageUser = ageYear else { return false }
+        return (ageUser < 18 ? false : true)
+    }
     //MARK: - isValidFunc
     
     private func setTextField(textField: UITextField, label: UILabel, validType: String.ValidType, validMessage: String, wrongMessage: String, string: String, range: NSRange) {

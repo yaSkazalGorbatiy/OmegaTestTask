@@ -13,10 +13,10 @@ class NetworkRequest {
     
     private init() {}
     
-    func requestAlbums(nameAlbum: String, completion: @escaping (Result<Data, Error>) -> Void) {
-        
-        let urlString = "https://itunes.apple.com/search?term=\(nameAlbum)&entity=album&attribute=albumTerm"
+    func requestData(urlString: String, completion: @escaping (Result<Data, Error>) -> Void) {
+
         guard let url = URL(string: urlString) else { return }
+        
         URLSession.shared.dataTask(with: url) { (data, responce, error) in
             DispatchQueue.main.async {
                 if let error = error {
@@ -25,7 +25,6 @@ class NetworkRequest {
                 }
                 guard let data = data else { return }
                 completion(.success(data))
-                print(data)
             }
         }
         .resume()

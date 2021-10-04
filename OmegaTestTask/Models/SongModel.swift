@@ -6,3 +6,12 @@
 //
 
 import Foundation
+
+struct SongModel: Decodable, Equatable {
+    let results: [Song]
+}
+
+struct Song: Decodable, Equatable {
+    let trackName: String?
+}
+
